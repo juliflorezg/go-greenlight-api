@@ -11,7 +11,7 @@ import (
 func TestHealthCheck(t *testing.T) {
 
 	// expectedBody := "status: available\nenvironment: development\nversion: 1.0.0"
-	expectedBody := `{"status": "available", "environment": "development", "version": "1.0.0"}`
+	expectedBody := `{"environment":"development","status":"available","version":"1.0.0"}`
 	expectedHeader := "application/json"
 
 	app := NewTestApplication(t)
