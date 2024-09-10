@@ -10,10 +10,12 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 	// fmt.Fprintln(w, "status: available")
 	// fmt.Fprintf(w, "environment: %s\n", app.config.env)
 	// fmt.Fprintf(w, "version: %s\n", version)
-	data := map[string]string{
-		"status":      "available",
-		"environment": app.config.env,
-		"version":     version,
+	data := envelope{
+		"status": "available",
+		"status_info": map[string]string{
+			"environment": app.config.env,
+			"version":     version,
+		},
 	}
 
 	err := app.writeJSON(w, http.StatusOK, data, nil)
