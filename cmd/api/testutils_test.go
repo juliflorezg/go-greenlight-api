@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -58,4 +59,22 @@ func (ts *testServer) get(t *testing.T, urlPath string) (int, http.Header, strin
 	body = bytes.TrimSpace(body)
 
 	return rs.StatusCode, rs.Header, string(body)
+}
+
+func (ts *testServer) post(t *testing.T, uriPath string, body string) (int, http.Header, string) {
+
+	res, err := ts.Client().Post(ts.URL+uriPath, "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// resBody = bytes.TrimSpace(resBody)
+	// Return the response status, headers and body.
+	return res.StatusCode, res.Header, string(resBody)
+
 }
