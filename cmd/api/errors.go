@@ -20,7 +20,8 @@ func (app *application) logError(r *http.Request, err error) {
 // messages to the client with a given status code.
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	env := envelope{
-		"error": message,
+		"error":       message,
+		"status_code": status,
 	}
 
 	err := app.writeJSON(w, status, env, nil)
