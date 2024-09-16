@@ -78,7 +78,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
-				return fmt.Errorf("request JSON body could not be parsed due to an incorrect type %s for field %s", unmarshalTypeError.Type, unmarshalTypeError.Field)
+				return fmt.Errorf("request JSON body could not be parsed due to an incorrect type %q for field %q (type: %s)", unmarshalTypeError.Value, unmarshalTypeError.Field, unmarshalTypeError.Type)
 			}
 			return fmt.Errorf("request JSON body contains an incorrect type (at character %d)", unmarshalTypeError.Offset)
 
