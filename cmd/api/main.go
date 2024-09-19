@@ -45,7 +45,7 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	// flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:glPass42^@localhost/greenlight", "PosgreSQL DSN")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://greenlight:glPass42%5E@localhost/greenlight", "PosgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PosgreSQL DSN")
 	flag.Parse()
 
 	// Initialize a new structured logger which writes log entries to the standard out
