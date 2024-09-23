@@ -44,13 +44,14 @@ func (mm MovieModel) Insert(movie *Movie) error {
 	return nil
 }
 
-func (mm MovieModel) Get(ID int64) (*Movie, error) {
+func (mm MovieModel) Get(id int64) (*Movie, error) {
 	return nil, nil
 }
 
 func (mm MovieModel) Update(movie *Movie) error {
 	return nil
 }
+
 func (mm MovieModel) Delete(id int64) error {
 	return nil
 }
