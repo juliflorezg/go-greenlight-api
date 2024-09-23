@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/juliflorezg/greenlight/internal/data/mocks"
 )
 
 type testServer struct {
@@ -22,6 +24,7 @@ func NewTestApplication(t *testing.T) *application {
 			port: 4000,
 			env:  "development",
 		},
+		models: mocks.NewMockModels(),
 	}
 }
 

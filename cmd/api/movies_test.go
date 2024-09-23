@@ -54,8 +54,11 @@ func TestCreateMovieHandler(t *testing.T) {
 	defer ts.Close()
 
 	tt := map[string]struct {
-		input          string
-		expectedOutput string
+		input            string
+		expectedOutput   string
+		expectedResCode  int
+		checkHeader      bool
+		expectedLocation string
 	}{
 		"invalid xml": {
 			input: `xml version="1.0" encoding="UTF-8"?><note><to>Alex</to></note>`,
@@ -64,6 +67,8 @@ func TestCreateMovieHandler(t *testing.T) {
   "status_code": 400
 }
 `, // bc of the addition of \n in response
+			expectedResCode: http.StatusBadRequest,
+			checkHeader:     false,
 		},
 		"malformed json": {
 			input: `{"title": "Moana", }`,
@@ -72,6 +77,8 @@ func TestCreateMovieHandler(t *testing.T) {
   "status_code": 400
 }
 `,
+			expectedResCode: http.StatusBadRequest,
+			checkHeader:     false,
 		},
 		"array instead of object": {
 			input: `["foo", "bar"]`,
@@ -80,14 +87,17 @@ func TestCreateMovieHandler(t *testing.T) {
   "status_code": 400
 }
 `,
+			expectedResCode: http.StatusBadRequest,
+			checkHeader:     false,
 		},
 		"numeric title value": {
 			input: `{"title": 123}`,
 			expectedOutput: `{
-  "error": "request JSON body could not be parsed due to an incorrect type string for field title",
+  "error": "request JSON body could not be parsed due to an incorrect type \"number\" for field \"title\" (type: string)",
   "status_code": 400
 }
 `,
+			expectedResCode: http.StatusBadRequest,
 		},
 		"empty body": {
 			input: ``,
@@ -96,6 +106,28 @@ func TestCreateMovieHandler(t *testing.T) {
   "status_code": 400
 }
 `,
+			expectedResCode: http.StatusBadRequest,
+			checkHeader:     false,
+		},
+		"valid input": {
+			input: `{"title":"Deadpool","year":2016, "runtime":"108 mins","genres":["action","comedy"]}`,
+			expectedOutput: `{
+  "movie": {
+    "id": 1,
+    "title": "Deadpool",
+    "year": 2016,
+    "runtime": "108 mins",
+    "genres": [
+      "action",
+      "comedy"
+    ],
+    "version": 1
+  }
+}
+`,
+			expectedResCode:  http.StatusCreated,
+			checkHeader:      true,
+			expectedLocation: "/v1/movies/1",
 		},
 	}
 
@@ -108,11 +140,16 @@ func TestCreateMovieHandler(t *testing.T) {
 			// defer res.Body.Close()
 			// body, _ := io.ReadAll(res.Body)
 
-			statusCode, _, body := ts.post(t, "/v1/movies", tc.input)
+			statusCode, headers, body := ts.post(t, "/v1/movies", tc.input)
 
-			assert.Equal(t, statusCode, http.StatusBadRequest)
+			assert.Equal(t, statusCode, tc.expectedResCode)
 
+			// assert.Equal(t, strings.ReplaceAll(body, " ", "-"), tc.expectedOutput)
 			assert.Equal(t, body, tc.expectedOutput)
+
+			if tc.checkHeader {
+				assert.Equal(t, headers.Get("Location"), tc.expectedLocation)
+			}
 		})
 	}
 }

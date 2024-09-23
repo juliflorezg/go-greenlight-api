@@ -1,13 +1,28 @@
 package mocks
 
 import (
+	"time"
+
 	"github.com/juliflorezg/greenlight/internal/data"
 )
+
+var mockMovie = data.Movie{
+	ID:        1,
+	Title:     "The Hunger Games",
+	Runtime:   142,
+	Year:      2012,
+	Genres:    []string{"dystopian sci-fi", "action", "adventure"},
+	CreatedAt: time.Now(),
+	Version:   1,
+}
 
 type MockMovieModel struct{}
 
 func (m MockMovieModel) Insert(movie *data.Movie) error {
-	// todo: Mock the action...
+	movie.ID = 1
+	movie.CreatedAt = time.Now()
+	movie.Version = 1
+
 	return nil
 }
 
