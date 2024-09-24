@@ -27,8 +27,15 @@ func (m MockMovieModel) Insert(movie *data.Movie) error {
 }
 
 func (m MockMovieModel) Get(id int64) (*data.Movie, error) {
-	// todo: Mock the action...
-	return nil, nil
+	// // todo: Mock the action...
+	switch id {
+	case 1:
+		return &mockMovie, nil
+	default:
+		return nil, data.ErrRecordNotFound
+	}
+
+	// return nil, nil
 }
 
 func (m MockMovieModel) Update(movie *data.Movie) error {
