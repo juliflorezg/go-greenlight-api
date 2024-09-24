@@ -39,7 +39,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data envelo
 	}
 
 	// Append a newline to make it easier to view in terminal applications (remove for testing)
-	js = append(js, '\n')
+	// js = append(js, '\n')
 
 	for k, v := range headers {
 		w.Header()[k] = v
