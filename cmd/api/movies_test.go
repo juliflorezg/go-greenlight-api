@@ -22,17 +22,44 @@ func TestShowMovie(t *testing.T) {
 		"ID zero": {
 			urlPath:  "/v1/movies/0",
 			wantCode: 404,
-			wantBody: "404 page not found",
+			wantBody: `{
+  "error": "The requested resource could not be found",
+  "status_code": 404
+}`,
 		},
 		"Negative ID": {
 			urlPath:  "/v1/movies/-234",
 			wantCode: 404,
-			wantBody: "404 page not found",
+			wantBody: `{
+  "error": "The requested resource could not be found",
+  "status_code": 404
+}`,
 		},
 		"ID string": {
 			urlPath:  "/v1/movies/asd",
 			wantCode: 404,
-			wantBody: "404 page not found",
+			wantBody: `{
+  "error": "The requested resource could not be found",
+  "status_code": 404
+}`,
+		},
+		"valid ID": {
+			urlPath:  "/v1/movies/1",
+			wantCode: 200,
+			wantBody: `{
+  "movie": {
+    "id": 1,
+    "title": "The Hunger Games",
+    "year": 2012,
+    "runtime": "142 mins",
+    "genres": [
+      "dystopian sci-fi",
+      "action",
+      "adventure"
+    ],
+    "version": 1
+  }
+}`,
 		},
 	}
 
@@ -42,7 +69,7 @@ func TestShowMovie(t *testing.T) {
 
 			assert.Equal(t, code, tc.wantCode)
 			if tc.wantBody != "" {
-				assert.StringContains(t, body, tc.wantBody)
+				assert.Equal(t, body, tc.wantBody)
 			}
 		})
 	}
@@ -65,8 +92,7 @@ func TestCreateMovieHandler(t *testing.T) {
 			expectedOutput: `{
   "error": "body contains a badly-formed JSON (at character 1)",
   "status_code": 400
-}
-`, // bc of the addition of \n in response
+}`, // bc of the addition of \n in response
 			expectedResCode: http.StatusBadRequest,
 			checkHeader:     false,
 		},
@@ -75,8 +101,7 @@ func TestCreateMovieHandler(t *testing.T) {
 			expectedOutput: `{
   "error": "body contains a badly-formed JSON (at character 20)",
   "status_code": 400
-}
-`,
+}`,
 			expectedResCode: http.StatusBadRequest,
 			checkHeader:     false,
 		},
@@ -85,8 +110,7 @@ func TestCreateMovieHandler(t *testing.T) {
 			expectedOutput: `{
   "error": "request JSON body contains an incorrect type (at character 1)",
   "status_code": 400
-}
-`,
+}`,
 			expectedResCode: http.StatusBadRequest,
 			checkHeader:     false,
 		},
@@ -95,8 +119,7 @@ func TestCreateMovieHandler(t *testing.T) {
 			expectedOutput: `{
   "error": "request JSON body could not be parsed due to an incorrect type \"number\" for field \"title\" (type: string)",
   "status_code": 400
-}
-`,
+}`,
 			expectedResCode: http.StatusBadRequest,
 		},
 		"empty body": {
@@ -104,8 +127,7 @@ func TestCreateMovieHandler(t *testing.T) {
 			expectedOutput: `{
   "error": "body must not be empty",
   "status_code": 400
-}
-`,
+}`,
 			expectedResCode: http.StatusBadRequest,
 			checkHeader:     false,
 		},
@@ -123,8 +145,7 @@ func TestCreateMovieHandler(t *testing.T) {
     ],
     "version": 1
   }
-}
-`,
+}`,
 			expectedResCode:  http.StatusCreated,
 			checkHeader:      true,
 			expectedLocation: "/v1/movies/1",
