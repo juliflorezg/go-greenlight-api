@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	// Import the pq driver so that it can register itself with the database/sql
@@ -33,6 +34,9 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  time.Duration
 	}
+	cors struct {
+		trustedOrigins []string
+	}
 }
 
 type application struct {
@@ -54,6 +58,12 @@ func main() {
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max idle time")
+
+	flag.Func("cors-trusted-origins", "Trusted CORS origins (space-separated list)", func(s string) error {
+		cfg.cors.trustedOrigins = strings.Fields(s)
+		return nil
+	})
+
 	flag.Parse()
 
 	// Initialize a new structured logger which writes log entries to the standard out
