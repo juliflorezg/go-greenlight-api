@@ -7,6 +7,7 @@ import (
 
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("unable to update resource due to edit conflict")
 )
 
 type MoviesInterface interface {
