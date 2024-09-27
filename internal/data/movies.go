@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -61,15 +62,19 @@ func (mm MovieModel) Get(id int64) (*Movie, error) {
 		return nil, ErrRecordNotFound
 	}
 
+	// ctx := context.Context(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	query := `
-	SELECT id, created_at, title, year, runtime, genres, version
+	SELECT pg_sleep(5), id, created_at, title, year, runtime, genres, version
 	FROM movies
 	WHERE id = $1;
 	`
 	var movie Movie
 
-	err := mm.DB.QueryRow(query, id).Scan(
-		&movie.ID, &movie.CreatedAt, &movie.Title, &movie.Year, &movie.Runtime, pq.Array(&movie.Genres), &movie.Version,
+	err := mm.DB.QueryRowContext(ctx, query, id).Scan(
+		&[]byte{}, &movie.ID, &movie.CreatedAt, &movie.Title, &movie.Year, &movie.Runtime, pq.Array(&movie.Genres), &movie.Version,
 	)
 
 	if err != nil {
