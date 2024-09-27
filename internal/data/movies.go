@@ -50,10 +50,12 @@ func (mm MovieModel) Insert(movie *Movie) error {
 		VALUES ($1, $2, $3, $4)
 		RETURNING id, created_at, version;
 	`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
 	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
 
-	return mm.DB.QueryRow(query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
+	return mm.DB.QueryRowContext(ctx, query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 func (mm MovieModel) Get(id int64) (*Movie, error) {
@@ -62,19 +64,18 @@ func (mm MovieModel) Get(id int64) (*Movie, error) {
 		return nil, ErrRecordNotFound
 	}
 
-	// ctx := context.Context(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `
-	SELECT pg_sleep(5), id, created_at, title, year, runtime, genres, version
+	SELECT id, created_at, title, year, runtime, genres, version
 	FROM movies
 	WHERE id = $1;
 	`
 	var movie Movie
 
 	err := mm.DB.QueryRowContext(ctx, query, id).Scan(
-		&[]byte{}, &movie.ID, &movie.CreatedAt, &movie.Title, &movie.Year, &movie.Runtime, pq.Array(&movie.Genres), &movie.Version,
+		&movie.ID, &movie.CreatedAt, &movie.Title, &movie.Year, &movie.Runtime, pq.Array(&movie.Genres), &movie.Version,
 	)
 
 	if err != nil {
@@ -99,6 +100,9 @@ func (mm MovieModel) Update(movie *Movie) error {
 		RETURNING version
 	`
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	args := []any{
 		movie.Title,
 		movie.Year,
@@ -108,7 +112,7 @@ func (mm MovieModel) Update(movie *Movie) error {
 		movie.Version,
 	}
 
-	err := mm.DB.QueryRow(query, args...).Scan(&movie.Version)
+	err := mm.DB.QueryRowContext(ctx, query, args...).Scan(&movie.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -127,12 +131,15 @@ func (mm MovieModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	query := `
 		DELETE FROM movies
 		WHERE id = $1
 	`
 
-	result, err := mm.DB.Exec(query, id)
+	result, err := mm.DB.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
