@@ -174,3 +174,128 @@ func TestCreateMovieHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestListMoviesHandler(t *testing.T) {
+	app := NewTestApplication(t)
+	ts := NewTestServer(t, app.routes())
+	defer ts.Close()
+
+	tt := map[string]struct {
+		queryString        string
+		expectedResponse   string
+		expectedCodeStatus int
+	}{
+		// "no query string(def values)": {
+		// 	queryString: "",
+		// },
+		"incorrect page": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=abc&page_size=10&sort=year",
+			expectedResponse: `{
+  "error": {
+    "page": "must be an integer value"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect page (negative)": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=-10&page_size=10&sort=year",
+			expectedResponse: `{
+  "error": {
+    "page": "must be greater than 0"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect page (out of bounds)": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=20000000&page_size=10&sort=year",
+			expectedResponse: `{
+  "error": {
+    "page": "must be less than or equal to 10 million"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect page_size": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=1&page_size=abc&sort=year",
+			expectedResponse: `{
+  "error": {
+    "page_size": "must be an integer value"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect page_size (negative)": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=1&page_size=-15&sort=year",
+			expectedResponse: `{
+  "error": {
+    "page_size": "must be greater than 0"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect page_size (out of bounds)": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=1&page_size=200&sort=year",
+			expectedResponse: `{
+  "error": {
+    "page_size": "must be less than or equal to 100"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect sort value (typo)": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=1&page_size=10&sort=yearr",
+			expectedResponse: `{
+  "error": {
+    "sort": "must be a valid sort value"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"incorrect sort value (value not recognized)": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=1&page_size=10&sort=rating",
+			expectedResponse: `{
+  "error": {
+    "sort": "must be a valid sort value"
+  },
+  "status_code": 422
+}`,
+			expectedCodeStatus: 422,
+		},
+		"valid values for title, genres, page, page_size & sort": {
+			queryString: "/v1/movies?title=moana&genres=action,adventure&page=1&page_size=10&sort=year",
+			expectedResponse: `{
+  "movies": [
+    {
+      "id": 1,
+      "title": "The Hunger Games",
+      "year": 2012,
+      "runtime": "142 mins",
+      "genres": [
+        "dystopian sci-fi",
+        "action",
+        "adventure"
+      ],
+      "version": 1
+    }
+  ]
+}`,
+			expectedCodeStatus: 200,
+		},
+	}
+
+	for name, tc := range tt {
+		t.Run(name, func(t *testing.T) {
+			status, _, body := ts.get(t, tc.queryString)
+
+			assert.Equal(t, status, tc.expectedCodeStatus)
+			assert.Equal(t, body, tc.expectedResponse)
+		})
+	}
+}

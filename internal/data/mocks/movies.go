@@ -39,7 +39,8 @@ func (m MockMovieModel) Get(id int64) (*data.Movie, error) {
 }
 
 func (m MockMovieModel) GetAll(title string, genres []string, filters data.Filters) ([]*data.Movie, error) {
-	return nil, nil
+	// return nil, nil
+	return []*data.Movie{&mockMovie}, nil
 }
 
 func (m MockMovieModel) Update(movie *data.Movie) error {
